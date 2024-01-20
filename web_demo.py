@@ -31,7 +31,7 @@ CSS = r"""
 """
 
 chat_templates = ['internlm2-chat-7b']
-def lang_change(lang):
+def lang_change(lang, chat_TEMPLATE, predict_way, model_path, msg):
     if lang == "en":
         return  gr.update(label='language'), \
                 gr.update(label='chat_TEMPLATE'), \
@@ -57,13 +57,14 @@ with gr.Blocks(title="Xtuner Chat Board", css=CSS) as demo:
         lang = gr.Dropdown(label='language', choices=["en", "zh"], scale=1)
         chat_TEMPLATE = gr.Dropdown(
             label='chat_TEMPLATE', choices=chat_templates, scale=3)
-        predict_way = gr.Dropdown(label='predict_way',choices=['HFBot','LMDeployBot','VllmBot','OpenaiBot'])
+        predict_way = gr.Dropdown(label='predict_way', choices=['HFBot','LMDeployBot','VllmBot','OpenaiBot'])
     model_path = gr.Textbox(label='model_path', scale=3)
     chatbot = gr.Chatbot(label='Chatbot')
     history = gr.State([])
     msg = gr.Textbox(label='Textbox')
     clear = gr.ClearButton([msg, chatbot], value='Clear')
-    lang.select(fn=lang_change, inputs=[lang], outputs=[lang, chat_TEMPLATE, model_path, predict_way, chatbot, msg, clear])
+    lang.select(fn=lang_change, inputs=[lang, chat_TEMPLATE, predict_way, model_path, msg], 
+                outputs=[lang, chat_TEMPLATE, model_path, predict_way, chatbot, msg, clear])
 
 
 demo.queue()
