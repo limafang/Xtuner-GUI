@@ -4,6 +4,7 @@ from xtuner.chat import GenerationConfig
 import gradio as gr
 import pandas as pd
 import time
+import os
 CSS = r"""
 .duplicate-button {
   margin: auto !important;
@@ -29,7 +30,7 @@ CSS = r"""
   border: 2px solid white !important;
 }
 """
-df = pd.read_excel('./results.xlsx')
+df = pd.read_excel('/root/results.xlsx')
 
 text_data = """
 请给我介绍五个上海景点
@@ -161,16 +162,30 @@ def withdraw_last_respond(chat_history):
     return chat_history
 
 
-def predict_file(files):
+def predict_file(files, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed, save_path):
     from datasets import load_dataset
     dataset = load_dataset('text', data_files=files.name)['train']
     texts = dataset['text']
+    stop_words = []
+    gen_config = GenerationConfig(
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        top_k=top_k,
+        top_p=top_p,
+        repetition_penalty=repetition_penalty,
+        stop_words=stop_words,
+        seed=seed,
+    )
     preds = xtuner_chat_bot.predict(texts=texts, generation_config=gen_config)
     dataset = dataset.add_column('response', preds)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp_file:
-        df = dataset.to_pandas()
-        df.to_excel(tmp_file.name, 'vllm', index=False)
-    return tmp_file.name
+    df = dataset.to_pandas()
+    if save_path == "" or save_path == None:
+        folder_name = time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+        save_path = os.path.join(folder_name, 'output.xlsx')
+    df.to_excel(save_path, 'vllm', index=False)
+    return save_path
 
 
 def llava_init(llava_select, model_path, llava_path, encoder_select, encoder_path, image):
@@ -234,7 +249,6 @@ def llava_regenerate_respond(chat_history, max_new_tokens, temperature, repetiti
         time.sleep(0.05)
         yield chat_history
 
-
 with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
 
     gr.Markdown(value='''  
@@ -258,7 +272,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
             label='bot name', value='internlm', interactive=True)
         # 推理引擎
         inference_engine = gr.Dropdown(label='inference engine', choices=[
-            'Huggingface', 'LMDeploy', 'Vllm', 'Openai'], value='Huggingface', interactive=True,info = 'Select llm deployment engine')
+            'Huggingface', 'LMDeploy', 'Vllm', 'Openai'], value='Huggingface', interactive=True, info='Select llm deployment engine')
         init_chatbot = gr.Button(value='init_chatbot')
 
     with gr.Row():
@@ -270,26 +284,27 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
     with gr.Accordion("Generation Parameters", open=False) as parameter_row:
         system = gr.Textbox(label='system_message',
                             value='You are a helpful assistant', scale=3, interactive=True)
+        top_k = gr.Slider(minimum=1, maximum=50, value=40,
+                          step=1, interactive=True, label="Top K", info='At each generation step, the model considers the top K highest-ranking words in the probability distribution of the current word, and then selects one of them as the next word.')
+        top_p = gr.Slider(minimum=0.0, maximum=1.0, value=0.75,
+                          step=0.1, interactive=True, label="Top P", info='Top P defines the cumulative probability threshold of the probability mass to be considered when generating the next word. At each step, the model sorts the words in the vocabulary in descending order of probability, and then samples from the range where the cumulative probability reaches Top P')
+        stop_words = gr.Textbox(label='stop_words', interactive=True,
+                                info='Generation will be terminated when these words are generated')
+        seed = gr.Textbox(label='seed', value=0, interactive=True)
+    with gr.Row():
         max_new_tokens = gr.Slider(
             minimum=0, maximum=1024, value=512, step=64, interactive=True, label="Max output tokens",)
         temperature = gr.Slider(minimum=0.0, maximum=1.0, value=0.1,
-                                step=0.1, interactive=True, label="Temperature",info='Controls diversity of model output')
+                                step=0.1, interactive=True, label="Temperature", info='Controls diversity of model output')
         repetition_penalty = gr.Slider(
-            minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty",info='Reduce duplicate content in generated text')
-        top_k = gr.Slider(minimum=1, maximum=50, value=40,
-                          step=1, interactive=True, label="Top K",info='At each generation step, the model considers the top K highest-ranking words in the probability distribution of the current word, and then selects one of them as the next word.')
-        top_p = gr.Slider(minimum=0.0, maximum=1.0, value=0.75,
-                          step=0.1, interactive=True, label="Top P",info='Top P defines the cumulative probability threshold of the probability mass to be considered when generating the next word. At each step, the model sorts the words in the vocabulary in descending order of probability, and then samples from the range where the cumulative probability reaches Top P')
-        stop_words = gr.Textbox(label='stop_words', interactive=True,info='Generation will be terminated when these words are generated')
-        seed = gr.Textbox(label='seed', value=0, interactive=True)
-
+            minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty", info='Reduce duplicate content in generated text')
     with gr.Tab("Basic chat"):
         with gr.Group(visible=False) as chat_board:
             chatbot = gr.Chatbot(label='Chatbot')
             history = gr.State([])
             msg = gr.Textbox(label='Textbox')
             with gr.Row():
-                ask = gr.Button('🚀 Submit')
+                ask = gr.Button('🚀 Submmit')
                 clear = gr.Button('🧹 Clear')
                 withdraw = gr.Button('↩️ Recall last message')
                 regenerate = gr.Button('🔁 Regenerate')
@@ -298,7 +313,11 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
 
     with gr.Tab("File processing"):
         with gr.Group(visible=False) as porcess_board:
-            file_output = gr.File(label='output file')
+            with gr.Row():
+                file_output = gr.File(label='output file')
+                gr.DataFrame(df, label='review your output')
+            save_path = gr.Textbox(
+                label='file save path', info='default saved in {time}/output.xlsx')
             with gr.Row():
                 gr.Textbox(text_data, lines=4, label='input example')
                 gr.DataFrame(df, label='output example')
@@ -306,7 +325,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
                 "Click to Upload a File", file_types=["text"])
         porcess_warning_info = gr.Textbox(
             '⚠️ Please complete initialization first')
-    # llava
+    
     with gr.Tab("LLaVa") as llava_tab:
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
@@ -343,14 +362,14 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
                     llava_clear = gr.ClearButton([llava_chatbot, llava_msg], value='🧹 Clear', interactive=False)
 
 
-
     lang.select(fn=lang_change, inputs=[lang],
                 outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
 
     init_chatbot.click(fn_init_chatbot, inputs=[
                        chat_TEMPLATE, inference_engine, model_path], outputs=[chat_warning_info, chat_board, porcess_warning_info, porcess_board])
 
-    upload_button.upload(predict_file, upload_button, file_output)
+    upload_button.upload(predict_file, inputs=[upload_button, max_new_tokens, temperature,
+                         repetition_penalty, top_k, top_p, stop_words, seed, save_path], outputs=[file_output])
 
     ask.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         get_respond, [chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], chatbot)
@@ -364,7 +383,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         get_respond, [chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], chatbot)
-    
+
     # llava events
     #llava_tab.select(
     #    llava_tab_button_change, outputs=init_chatbot
@@ -383,7 +402,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
 
     llava_regenerate.click(llava_regenerate_respond, inputs=[
                      llava_chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], outputs=[llava_chatbot])
-   
+
 
 demo.queue()
 demo.launch(server_name="0.0.0.0", share=False, inbrowser=True)
