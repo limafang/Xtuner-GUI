@@ -223,12 +223,6 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
     with gr.Accordion("Generation Parameters", open=False) as parameter_row:
         system = gr.Textbox(label='system_message',
                             value='You are a helpful assistant', scale=3, interactive=True)
-        max_new_tokens = gr.Slider(
-            minimum=0, maximum=1024, value=512, step=64, interactive=True, label="Max output tokens",)
-        temperature = gr.Slider(minimum=0.0, maximum=1.0, value=0.1,
-                                step=0.1, interactive=True, label="Temperature", info='Controls diversity of model output')
-        repetition_penalty = gr.Slider(
-            minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty", info='Reduce duplicate content in generated text')
         top_k = gr.Slider(minimum=1, maximum=50, value=40,
                           step=1, interactive=True, label="Top K", info='At each generation step, the model considers the top K highest-ranking words in the probability distribution of the current word, and then selects one of them as the next word.')
         top_p = gr.Slider(minimum=0.0, maximum=1.0, value=0.75,
@@ -236,7 +230,13 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
         stop_words = gr.Textbox(label='stop_words', interactive=True,
                                 info='Generation will be terminated when these words are generated')
         seed = gr.Textbox(label='seed', value=0, interactive=True)
-
+    with gr.Row():
+        max_new_tokens = gr.Slider(
+            minimum=0, maximum=1024, value=512, step=64, interactive=True, label="Max output tokens",)
+        temperature = gr.Slider(minimum=0.0, maximum=1.0, value=0.1,
+                                step=0.1, interactive=True, label="Temperature", info='Controls diversity of model output')
+        repetition_penalty = gr.Slider(
+            minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty", info='Reduce duplicate content in generated text')
     with gr.Tab("Basic chat"):
         with gr.Group(visible=False) as chat_board:
             chatbot = gr.Chatbot(label='Chatbot')
