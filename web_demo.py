@@ -188,7 +188,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
 
     with gr.Row():
         lang = gr.Dropdown(label='language', choices=[
-                           "en", "zh"], scale=1, value='en', interactive=True, info='choose what language you want use')
+                           "en", "zh"], scale=1, value='en', interactive=True, info='choose what language you want to use')
         chat_TEMPLATE = gr.Dropdown(
             label='chat_TEMPLATE', choices=chat_templates, scale=2, value='internlm_chat', interactive=True)
         # bot name
@@ -196,7 +196,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
             label='bot name', value='internlm', interactive=True)
         # 推理引擎
         inference_engine = gr.Dropdown(label='inference engine', choices=[
-            'Huggingface', 'LMDeploy', 'Vllm', 'Openai'], value='Huggingface', interactive=True)
+            'Huggingface', 'LMDeploy', 'Vllm', 'Openai'], value='Huggingface', interactive=True,info = 'Select llm deployment engine')
         init_chatbot = gr.Button(value='init_chatbot')
 
     with gr.Row():
@@ -211,14 +211,14 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
         max_new_tokens = gr.Slider(
             minimum=0, maximum=1024, value=512, step=64, interactive=True, label="Max output tokens",)
         temperature = gr.Slider(minimum=0.0, maximum=1.0, value=0.1,
-                                step=0.1, interactive=True, label="Temperature",)
+                                step=0.1, interactive=True, label="Temperature",info='Controls diversity of model output')
         repetition_penalty = gr.Slider(
-            minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty",)
+            minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty",info='Reduce duplicate content in generated text')
         top_k = gr.Slider(minimum=1, maximum=50, value=40,
-                          step=1, interactive=True, label="Top K",)
+                          step=1, interactive=True, label="Top K",info='At each generation step, the model considers the top K highest-ranking words in the probability distribution of the current word, and then selects one of them as the next word.')
         top_p = gr.Slider(minimum=0.0, maximum=1.0, value=0.75,
-                          step=0.1, interactive=True, label="Top P",)
-        stop_words = gr.Textbox(label='stop_words', interactive=True)
+                          step=0.1, interactive=True, label="Top P",info='Top P defines the cumulative probability threshold of the probability mass to be considered when generating the next word. At each step, the model sorts the words in the vocabulary in descending order of probability, and then samples from the range where the cumulative probability reaches Top P')
+        stop_words = gr.Textbox(label='stop_words', interactive=True,info='Generation will be terminated when these words are generated')
         seed = gr.Textbox(label='seed', value=0, interactive=True)
 
     with gr.Tab("Basic chat"):
