@@ -40,6 +40,8 @@ text_data = """
 chat_templates = ['internlm_chat', 'internlm2_chat', 'zephyr', 'moss_sft', 'llama2_chat', 'code_llama_chat', 'chatglm2', 'chatglm3', 'qwen_chat',
                   'baichuan_chat', 'baichuan2_chat', 'wizardlm', 'wizardcoder', 'vicuna', 'deepseek_coder', 'deepseekcoder', 'deepseek_moe', 'mistral', 'mixtral']
 
+model_sources = ['local']
+
 
 def lang_change(lang):
     if lang == "en":
@@ -62,6 +64,8 @@ def lang_change(lang):
             gr.update(value='清除记录'), \
             gr.update(value='初始化模型'), \
             gr.update(label='模型名称')
+
+# outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
 
 
 def fn_init_chatbot(chat_TEMPLATE, inference_engine, model_path):
@@ -113,12 +117,48 @@ def get_respond(chat_history, max_new_tokens, temperature, repetition_penalty, t
         stop_words=stop_words,
         seed=seed,
     )
-    bot_message = xtuner_chat_bot.chat(message, None, gen_config)
+    bot_message = xtuner_chat_bot.chat(message, gen_config=gen_config)
     chat_history[-1][1] = ""
     for character in bot_message:
         chat_history[-1][1] += character
         time.sleep(0.05)
         yield chat_history
+
+
+def regenerate_respond(chat_history, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed):
+    # 删除生成的最近的内容
+    chat_history[-1][1] = ""
+    xtuner_chat_bot.history = xtuner_chat_bot.history[:-1]
+    stop_words = []
+    gen_config = GenerationConfig(
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        top_k=top_k,
+        top_p=top_p,
+        repetition_penalty=repetition_penalty,
+        stop_words=stop_words,
+        seed=seed,
+    )
+    message = chat_history[-1][0]
+
+    bot_message = xtuner_chat_bot.chat(message, gen_config=gen_config)
+    for character in bot_message:
+        chat_history[-1][1] += character
+        time.sleep(0.05)
+        yield chat_history
+
+
+def clear_respond():
+    xtuner_chat_bot.reset_history()
+    return "", ""
+
+
+def withdraw_last_respond(chat_history):
+    print(xtuner_chat_bot.history)
+    print(chat_history)
+    xtuner_chat_bot.history = xtuner_chat_bot.history[:-2]
+    chat_history = chat_history[:-1]
+    return chat_history
 
 
 def predict_file(files):
@@ -145,9 +185,10 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
     gr.HTML(
         "<h1><center>Xtuner Chat Board</h1>"
     )
+
     with gr.Row():
         lang = gr.Dropdown(label='language', choices=[
-                           "en", "zh"], scale=1, value='en', interactive=True)
+                           "en", "zh"], scale=1, value='en', interactive=True, info='choose what language you want use')
         chat_TEMPLATE = gr.Dropdown(
             label='chat_TEMPLATE', choices=chat_templates, scale=2, value='internlm_chat', interactive=True)
         # bot name
@@ -158,8 +199,11 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
             'Huggingface', 'LMDeploy', 'Vllm', 'Openai'], value='Huggingface', interactive=True)
         init_chatbot = gr.Button(value='init_chatbot')
 
-    model_path = gr.Textbox(
-        label='model_path', value='/root/share/model_repos/internlm-chat-7b', scale=3, interactive=True)
+    with gr.Row():
+        model_path = gr.Textbox(
+            label='model_path', value='/root/share/model_repos/internlm-chat-7b', scale=3, interactive=True)
+        model_source = gr.Dropdown(
+            label='model_source', choices=model_sources, value='local')
 
     with gr.Accordion("Generation Parameters", open=False) as parameter_row:
         system = gr.Textbox(label='system_message',
@@ -177,27 +221,29 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
         stop_words = gr.Textbox(label='stop_words', interactive=True)
         seed = gr.Textbox(label='seed', value=0, interactive=True)
 
-    with gr.Tab("Chat"):
+    with gr.Tab("Basic chat"):
         with gr.Group(visible=False) as chat_board:
             chatbot = gr.Chatbot(label='Chatbot')
             history = gr.State([])
             msg = gr.Textbox(label='Textbox')
             with gr.Row():
-                ask = gr.Button('提交')
-                clear = gr.ClearButton([msg, chatbot], value='Clear')
-                undo = gr.Button('撤回上一条')
-                regenerate = gr.Button('重新生成')
-        chat_warning_info = gr.Textbox('请先完成初始化')
+                ask = gr.Button('🚀 Submmit')
+                clear = gr.Button('🧹 Clear')
+                withdraw = gr.Button('↩️ Recall last message')
+                regenerate = gr.Button('🔁 Regenerate')
+        chat_warning_info = gr.Textbox(
+            '⚠️ Please complete initialization first')
 
-    with gr.Tab("批处理"):
-        with gr.Group(visible=True) as porcess_board:
-            file_output = gr.File(label='生成文件')
+    with gr.Tab("File processing"):
+        with gr.Group(visible=False) as porcess_board:
+            file_output = gr.File(label='output file')
             with gr.Row():
-                gr.Textbox(text_data, lines=4, label='input formate')
-                gr.DataFrame(df, label='output formate')
+                gr.Textbox(text_data, lines=4, label='input example')
+                gr.DataFrame(df, label='output example')
             upload_button = gr.UploadButton(
                 "Click to Upload a File", file_types=["text"])
-        porcess_warning_info = gr.Textbox('请先完成初始化')
+        porcess_warning_info = gr.Textbox(
+            '⚠️ Please complete initialization first')
 
     lang.select(fn=lang_change, inputs=[lang],
                 outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
@@ -206,6 +252,16 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
                        chat_TEMPLATE, inference_engine, model_path], outputs=[chat_warning_info, chat_board, porcess_warning_info, porcess_board])
 
     upload_button.upload(predict_file, upload_button, file_output)
+
+    ask.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        get_respond, [chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], chatbot)
+
+    clear.click(clear_respond, outputs=[msg, chatbot])
+
+    withdraw.click(withdraw_last_respond, inputs=[chatbot], outputs=[chatbot])
+
+    regenerate.click(regenerate_respond, inputs=[
+                     chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], outputs=[chatbot])
 
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         get_respond, [chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], chatbot)
