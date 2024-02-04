@@ -70,7 +70,6 @@ XTuner Chat GUI 是建立在 XTuner 后端框架之上的用户友好界面。�
 
 感谢 @limafang @PrinceRay7 的贡献！
 
-Made with [contrib.rocks](https://contrib.rocks).
 我们欢迎社区的贡献。如果您有想法、错误报告或功能请求，请提出问题或提交拉取请求。
 
 ## 许可证
