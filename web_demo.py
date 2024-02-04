@@ -5,32 +5,7 @@ import gradio as gr
 import pandas as pd
 import time
 import os
-CSS = r"""
-.duplicate-button {
-  margin: auto !important;
-  color: white !important;
-  background: black !important;
-  border-radius: 100vh !important;
-}
-.modal-box {
-  position: fixed !important;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* center horizontally */
-  max-width: 1000px;
-  max-height: 750px;
-  overflow-y: auto;
-  background-color: var(--input-background-fill);
-  flex-wrap: nowrap !important;
-  border: 2px solid black !important;
-  z-index: 1000;
-  padding: 10px;
-}
-.dark .modal-box {
-  border: 2px solid white !important;
-}
-"""
-df = pd.read_excel('/root/results.xlsx')
+
 
 text_data = """
 请给我介绍五个上海景点
@@ -261,7 +236,7 @@ def llava_regenerate_respond(chat_history, max_new_tokens, temperature, repetiti
         yield chat_history
 
 
-with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
+with gr.Blocks(title="XTuner Chat Board") as demo:
 
     gr.Markdown(value='''  
 <div align="center">
