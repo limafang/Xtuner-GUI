@@ -41,6 +41,21 @@ XTuner Chat GUI 是建立在 XTuner 后端框架之上的用户友好界面。�
 
 3. **访问界面：** 打开您的 Web 浏览器，导航至 [http://localhost:7086](http://localhost:7086) 以访问 XTuner Chat GUI。
 
+
+
+## 使用
+
+一旦 XTuner Chat GUI 运行，您可以探索各种功能：
+
+- **本地模型部署：** 上传并部署本地模型，利用 XTuner 后端。
+- **后端引擎选择：** 从多个支持的后端推理引擎中选择。
+- **批量处理：** 通过上传本地文件批量处理推理请求。
+- **Llava Chat：** 通过 Llava Chat 功能体验多模态交互。
+
+有关详细的使用说明，请参阅 [用户指南](usage.md)。
+
+
+
 ## TODO
 
 - [ ] 支持 LMDeploy，Vllm，Openai等更多推理引擎
