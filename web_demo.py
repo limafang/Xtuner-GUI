@@ -364,7 +364,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
                     llava_regenerate = gr.Button(
                         '🔁 Regenerate', interactive=False)
                     llava_clear = gr.ClearButton(
-                        [llava_chatbot, llava_msg], value='🧹 Clear', interactive=False
+                        [llava_chatbot, llava_msg], value='🧹 Clear', interactive=False)
 
     lang.select(fn=lang_change, inputs=[lang],
                 outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
