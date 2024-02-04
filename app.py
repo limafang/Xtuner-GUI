@@ -158,7 +158,7 @@ def predict_file(files, max_new_tokens, temperature, repetition_penalty, top_k, 
         stop_words=stop_words,
         seed=seed,
     )
-    preds = xtuner_chat_bot.predict(texts=texts, generation_config=gen_config)
+    preds = xtuner_chat_bot.predict(texts=texts, gen_config=gen_config)
     dataset = dataset.add_column('response', preds)
     df = dataset.to_pandas()
     if save_path == "" or save_path == None:
