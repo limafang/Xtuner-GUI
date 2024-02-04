@@ -7,6 +7,11 @@ import time
 import os
 
 
+text_data = """
+请给我介绍五个上海景点
+请给我介绍五个北京景点
+请给我介绍五个海南景点
+"""
 
 chat_templates = ['internlm_chat', 'internlm2_chat', 'zephyr', 'moss_sft', 'llama2_chat', 'code_llama_chat', 'chatglm2', 'chatglm3', 'qwen_chat',
                   'baichuan_chat', 'baichuan2_chat', 'wizardlm', 'wizardcoder', 'vicuna', 'deepseek_coder', 'deepseekcoder', 'deepseek_moe', 'mistral', 'mixtral']
@@ -29,7 +34,7 @@ en_list = [
             ['file save path', None, 'default saved in {time}/output.xlsx'], ['output file'], 
             ['review your input', 'Please make sure your questions are line separated and saved in a text file'],
             ['review your output', 'The generated file will be saved as an excel table'], 
-            [None, "Click to Upload a File"], [None, 'Generate'], 
+            ["Click to Upload a File"], [None, 'Generate'], 
             ['warning', '⚠️ Please complete initialization first'], 
             ["LLaVa"], 
             ["chat_template", "internlm2_chat"], ["model_path", "/root/share/model_repos/internlm2-chat-7b"],
@@ -42,7 +47,7 @@ en_list = [
 zh_list = [
             ['语言', 'zh', '选择语言'], ['模型模板','internlm_chat'],
             ['机器人名字','internlm'], ['推理引擎', 'Huggingface', '选择模型部署引擎'], 
-            [None, '初始化模型'], ['模型路径','/root/share/model_repos/internlm-chat-7b'], ['模型来源','本地'],
+            [None, '初始化模型'], ['模型路径','/root/share/model_repos/internlm-chat-7b'], ['模型来源','local'],
             ["生成参数"], ['系统信息', 'You are a helpful assistant'], 
             ["Top K", 40, '在每一步生成中, 模型会考虑在当前词的概率分布中的前K个最高排名的词, 然后选择其中的一个词作为下一个输出.'],
             ["Top P", 0.75, 'Top P 定义了在生成下一个词时需要考虑的概率质量函数的累积概率阈值。在每一步中, 模型会以概率的降序顺序对词库中的词进行排序, 随后在累积概率达到Top P的范围内进行采样.'], 
@@ -55,7 +60,7 @@ zh_list = [
             ['文件保存路径', None, '默认保存在 {time}/output.xlsx'], ['输出文件'], 
             ['审核你的输入', '请确保你的问题按行分开并且保存在一个文本文件中'],
             ['审核你的输出', '生成的文件会被保存在一个excel表格中'], 
-            [None, '点击来上传文件'], [None, '生成'], 
+            ['点击来上传文件'], [None, '生成'], 
             ['警告', '⚠️ 请先完成模型初始化'], 
             ["LLaVa"], 
             ["模型模板", "internlm2_chat"], ["模型路径", "/root/share/model_repos/internlm2-chat-7b"],
@@ -289,7 +294,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
         model_path = gr.Textbox(
             label='model_path', value='/root/share/model_repos/internlm-chat-7b', scale=3, interactive=True)
         model_source = gr.Dropdown(
-            label='model_source', choices=model_sources, value='local')
+            label='model_source', choices=model_sources, value='local', interactive=True)
 
     with gr.Accordion("Generation Parameters", open=False) as parameter_row:
         system = gr.Textbox(label='system_message',
@@ -397,7 +402,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
             for i in range(com_len):
                 com = components[i]
                 com_list = en_list[i]
-                if isinstance(com, gr.Button) or isinstance(com, gr.UploadButton) or isinstance(com, gr.ClearButton):
+                if isinstance(com, gr.Button) or isinstance(com, gr.ClearButton):
                     return_list += [gr.update(value=com_list[1])]
                 elif len(com_list) == 1:
                     return_list += [gr.update(label=com_list[0])]
@@ -412,7 +417,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
             for i in range(com_len):
                 com = components[i]
                 com_list = zh_list[i]
-                if isinstance(com, gr.Button) or isinstance(com, gr.UploadButton) or isinstance(com, gr.ClearButton):
+                if isinstance(com, gr.Button) or isinstance(com, gr.ClearButton):
                     return_list += [gr.update(value=com_list[1])]
                 elif len(com_list) == 1:
                     return_list += [gr.update(label=com_list[0])]
