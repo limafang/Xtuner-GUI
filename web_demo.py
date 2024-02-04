@@ -89,7 +89,7 @@ def get_respond(chat_history, max_new_tokens, temperature, repetition_penalty, t
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=repetition_penalty,
+        repetition_penalty = float(repetition_penalty),
         stop_words=stop_words,
         seed=seed,
     )
@@ -111,7 +111,7 @@ def regenerate_respond(chat_history, max_new_tokens, temperature, repetition_pen
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=repetition_penalty,
+        repetition_penalty = float(repetition_penalty),
         stop_words=stop_words,
         seed=seed,
     )
@@ -154,7 +154,7 @@ def predict_file(files, max_new_tokens, temperature, repetition_penalty, top_k, 
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=repetition_penalty,
+        repetition_penalty = float(repetition_penalty),
         stop_words=stop_words,
         seed=seed,
     )
@@ -189,7 +189,7 @@ def llava_respond(chat_history, max_new_tokens, temperature, repetition_penalty,
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=repetition_penalty,
+        repetition_penalty = float(repetition_penalty),
         stop_words=stop_words,
         seed=seed,
     )
@@ -223,7 +223,7 @@ def llava_regenerate_respond(chat_history, max_new_tokens, temperature, repetiti
         temperature=temperature,
         top_k=top_k,
         top_p=top_p,
-        repetition_penalty=repetition_penalty,
+        repetition_penalty = float(repetition_penalty),
         stop_words=stop_words,
         seed=seed,
     )
@@ -239,14 +239,14 @@ def llava_regenerate_respond(chat_history, max_new_tokens, temperature, repetiti
 with gr.Blocks(title="XTuner Chat Board") as demo:
 
     gr.Markdown(value='''  
-<div align="center">
-  <img src="XTuner_GUI.png" width="300"/>
-  <br /><br />    
+<div align="center">  
+    <img src="https://s11.ax1x.com/2024/02/04/pFlcgOK.md.png" width="300"/>  
+    <br /><br />          
                 
-[![GitHub Repo stars](https://img.shields.io/github/stars/InternLM/xtuner?style=social)](https://github.com/InternLM/xtuner/stargazers)                
+[![GitHub Repo stars](https://img.shields.io/github/stars/InternLM/xtuner?style=social)](https://github.com/InternLM/xtuner/stargazers)    </div>             
                 ''')
     gr.HTML(
-        "<h1><center>Xtuner Chat Board</h1>"
+        "<h1><center>XTuner Chat Board</h1>"
     )
 
     with gr.Row():
