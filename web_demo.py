@@ -162,6 +162,13 @@ def withdraw_last_respond(chat_history):
     return chat_history
 
 
+def show_upload_file(files):
+    with open(files.name, 'r') as file:
+        lines = file.readlines()[:5]
+    print(lines)
+    return ''.join(lines)
+
+
 def predict_file(files, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed, save_path):
     from datasets import load_dataset
     dataset = load_dataset('text', data_files=files.name)['train']
@@ -185,17 +192,18 @@ def predict_file(files, max_new_tokens, temperature, repetition_penalty, top_k, 
             os.makedirs(folder_name)
         save_path = os.path.join(folder_name, 'output.xlsx')
     df.to_excel(save_path, 'vllm', index=False)
-    return save_path
+    return save_path, '\n'.join(df['response'].head(4).values)
 
 
 def llava_init(llava_select, model_path, llava_path, encoder_select, encoder_path, image):
     global llava_bot
     from xtuner.chat import HFLlavaBot, LlavaChat
     template = CHAT_TEMPLATE['internlm2_chat']
-    model_path = '/root/share/model_repos/internlm2-chat-7b' # sanity assertion
+    model_path = '/root/share/model_repos/internlm2-chat-7b'  # sanity assertion
     bot = HFLlavaBot(model_path, llava_path, encoder_path)
     llava_bot = LlavaChat(bot, image, chat_template=template)
     return [gr.update(placeholder="Enter text and press ENTER", interactive=True)] + [gr.update(interactive=True)] * 4
+
 
 def llava_respond(chat_history, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed):
     message = chat_history[-1][0]
@@ -217,8 +225,10 @@ def llava_respond(chat_history, max_new_tokens, temperature, repetition_penalty,
         time.sleep(0.05)
         yield chat_history
 
+
 def llava_tab_button_change():
     return gr.update(interactive=False)
+
 
 def llava_withdraw_last_respond(chat_history):
     print(llava_bot.history)
@@ -226,6 +236,7 @@ def llava_withdraw_last_respond(chat_history):
     llava_bot.history = llava_bot.history[:-2]
     chat_history = chat_history[:-1]
     return chat_history
+
 
 def llava_regenerate_respond(chat_history, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed):
     # 删除生成的最近的内容
@@ -248,6 +259,7 @@ def llava_regenerate_respond(chat_history, max_new_tokens, temperature, repetiti
         chat_history[-1][1] += character
         time.sleep(0.05)
         yield chat_history
+
 
 with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
 
@@ -291,6 +303,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
         stop_words = gr.Textbox(label='stop_words', interactive=True,
                                 info='Generation will be terminated when these words are generated')
         seed = gr.Textbox(label='seed', value=0, interactive=True)
+
     with gr.Row():
         max_new_tokens = gr.Slider(
             minimum=0, maximum=1024, value=512, step=64, interactive=True, label="Max output tokens",)
@@ -298,6 +311,7 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
                                 step=0.1, interactive=True, label="Temperature", info='Controls diversity of model output')
         repetition_penalty = gr.Slider(
             minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty", info='Reduce duplicate content in generated text')
+
     with gr.Tab("Basic chat"):
         with gr.Group(visible=False) as chat_board:
             chatbot = gr.Chatbot(label='Chatbot')
@@ -309,33 +323,44 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
                 withdraw = gr.Button('↩️ Recall last message')
                 regenerate = gr.Button('🔁 Regenerate')
         chat_warning_info = gr.Textbox(
-            '⚠️ Please complete initialization first')
+            '⚠️ Please complete initialization first', label='warning')
 
     with gr.Tab("File processing"):
-        with gr.Group(visible=False) as porcess_board:
+        with gr.Group(visible=True) as porcess_board:
             with gr.Row():
+                save_path = gr.Textbox(
+                    label='file save path', info='default saved in {time}/output.xlsx')
                 file_output = gr.File(label='output file')
-                gr.DataFrame(df, label='review your output')
-            save_path = gr.Textbox(
-                label='file save path', info='default saved in {time}/output.xlsx')
+
             with gr.Row():
-                gr.Textbox(text_data, lines=4, label='input example')
-                gr.DataFrame(df, label='output example')
-            upload_button = gr.UploadButton(
-                "Click to Upload a File", file_types=["text"])
+                input_file_content = gr.Textbox(
+                    'Please make sure your questions are line separated and saved in a text file', label='review your input', max_lines=5)
+                output_file_content = gr.Textbox(
+                    'The generated file will be saved as an excel table', label='review your output', max_lines=5)
+
+            with gr.Row():
+                upload_button = gr.UploadButton(
+                    "Click to Upload a File", file_types=["text"])
+                test_but = gr.Button('Generate')
+
         porcess_warning_info = gr.Textbox(
-            '⚠️ Please complete initialization first')
-    
+            '⚠️ Please complete initialization first', label='warning')
+
     with gr.Tab("LLaVa") as llava_tab:
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
-                llava_select = gr.Dropdown(label="llava_template", choices=["llava-internlm2-7b"], value="llava-internlm2-7b", scale=1, interactive=True)
-                llava_path = gr.Textbox(label="llava_path", value="/root/xtuner/llava-internlm2-7b", interactive=True)
-                encoder_select = gr.Dropdown(label="encoder_template", choices=["clip-vit-large-patch14-336"], value="clip-vit-large-patch14-336", scale=1, interactive=True)
-                encoder_path = gr.Textbox(label="encoder_path", value="/root/openai/clip-vit-large-patch14-336", interactive=True)
+                llava_select = gr.Dropdown(label="llava_template", choices=[
+                                           "llava-internlm2-7b"], value="llava-internlm2-7b", scale=1, interactive=True)
+                llava_path = gr.Textbox(
+                    label="llava_path", value="/root/llava/xtuner/llava-internlm2-7b", interactive=True)
+                encoder_select = gr.Dropdown(label="encoder_template", choices=[
+                                             "clip-vit-large-patch14-336"], value="clip-vit-large-patch14-336", scale=1, interactive=True)
+                encoder_path = gr.Textbox(
+                    label="encoder_path", value="/root/openai/clip-vit-large-patch14-336", interactive=True)
 
                 img_input = gr.Image(interactive=True, type='filepath')
-                llava_model_init_button = gr.Button("init_llava", interactive=True)
+                llava_model_init_button = gr.Button(
+                    "init_llava", interactive=True)
                 '''
                 llava_examples = gr.Examples(
                     examples=[
@@ -354,13 +379,17 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
                 llava_chatbot = gr.Chatbot(label="LLaVa Chatbot", height=550)
                 llava_history = gr.State([])
                 with gr.Row():
-                    llava_msg = gr.Textbox(show_label=False, scale=2, placeholder="Please initialize model!", interactive=False)
-                    llava_submit_button = gr.Button('🚀 Submit', scale=1, interactive=False)
+                    llava_msg = gr.Textbox(
+                        show_label=False, scale=2, placeholder="Please initialize model!", interactive=False)
+                    llava_submit_button = gr.Button(
+                        '🚀 Submit', scale=1, interactive=False)
                 with gr.Row():
-                    llava_withdraw = gr.Button('↩️ Recall last message', interactive=False)
-                    llava_regenerate = gr.Button('🔁 Regenerate', interactive=False)
-                    llava_clear = gr.ClearButton([llava_chatbot, llava_msg], value='🧹 Clear', interactive=False)
-
+                    llava_withdraw = gr.Button(
+                        '↩️ Recall last message', interactive=False)
+                    llava_regenerate = gr.Button(
+                        '🔁 Regenerate', interactive=False)
+                    llava_clear = gr.ClearButton(
+                        [llava_chatbot, llava_msg], value='🧹 Clear', interactive=False
 
     lang.select(fn=lang_change, inputs=[lang],
                 outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
@@ -368,8 +397,8 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
     init_chatbot.click(fn_init_chatbot, inputs=[
                        chat_TEMPLATE, inference_engine, model_path], outputs=[chat_warning_info, chat_board, porcess_warning_info, porcess_board])
 
-    upload_button.upload(predict_file, inputs=[upload_button, max_new_tokens, temperature,
-                         repetition_penalty, top_k, top_p, stop_words, seed, save_path], outputs=[file_output])
+    upload_button.upload(show_upload_file, inputs=[upload_button], outputs=[input_file_content]).then(predict_file, inputs=[upload_button, max_new_tokens, temperature,
+                                                                                                                            repetition_penalty, top_k, top_p, stop_words, seed, save_path], outputs=[file_output, output_file_content])
 
     ask.click(user, [msg, chatbot], [msg, chatbot], queue=False).then(
         get_respond, [chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], chatbot)
@@ -385,23 +414,27 @@ with gr.Blocks(title="XTuner Chat Board", css=CSS) as demo:
         get_respond, [chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], chatbot)
 
     # llava events
-    #llava_tab.select(
+    # llava_tab.select(
     #    llava_tab_button_change, outputs=init_chatbot
-    #)
+    # )
     llava_model_init_button.click(
-        llava_init, inputs=[llava_select, model_path, llava_path, encoder_select, encoder_path, img_input], 
-        outputs=[llava_msg, llava_submit_button, llava_withdraw, llava_regenerate, llava_clear]
+        llava_init, inputs=[llava_select, model_path,
+                            llava_path, encoder_select, encoder_path, img_input],
+        outputs=[llava_msg, llava_submit_button,
+                 llava_withdraw, llava_regenerate, llava_clear]
     )
     llava_msg.submit(user, [llava_msg, llava_chatbot], [llava_msg, llava_chatbot], queue=False).then(
-        llava_respond, [llava_chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], llava_chatbot
+        llava_respond, [llava_chatbot, max_new_tokens, temperature,
+                        repetition_penalty, top_k, top_p, stop_words, seed], llava_chatbot
     )
     llava_submit_button.click(user, [llava_msg, llava_chatbot], [llava_msg, llava_chatbot], queue=False).then(
         llava_respond, [llava_chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], llava_chatbot)
-    
-    llava_withdraw.click(llava_withdraw_last_respond, inputs=[llava_chatbot], outputs=[llava_chatbot])
+
+    llava_withdraw.click(llava_withdraw_last_respond, inputs=[
+                         llava_chatbot], outputs=[llava_chatbot])
 
     llava_regenerate.click(llava_regenerate_respond, inputs=[
-                     llava_chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], outputs=[llava_chatbot])
+        llava_chatbot, max_new_tokens, temperature, repetition_penalty, top_k, top_p, stop_words, seed], outputs=[llava_chatbot])
 
 
 demo.queue()
