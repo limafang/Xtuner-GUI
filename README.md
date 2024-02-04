@@ -1,5 +1,8 @@
 # XTuner Chat GUI
-
+<div align="center">  
+    <img src="https://s11.ax1x.com/2024/02/04/pFlcgOK.md.png" width="300"/>  
+    <br /><br />          
+</div>   
 欢迎使用 XTuner Chat GUI，这是您快速部署本地模型的理想解决方案，利用了 XTuner 后端框架。这个图形用户界面（GUI）旨在简化本地模型推理部署，支持多个后端推理引擎。XTuner Chat GUI 不仅是一个强大的本地模型部署工具，还提供了批量处理本地文件推理请求以及支持多模态 Llava Chat 功能等特色功能。
 
 ## 目录
