@@ -18,29 +18,57 @@ chat_templates = ['internlm_chat', 'internlm2_chat', 'zephyr', 'moss_sft', 'llam
 
 model_sources = ['local']
 
+en_list = [
+            ['language', 'en', 'choose what language you want to use'], ['chat_TEMPLATE','internlm_chat'],
+            ['bot name','internlm'], ['inference engine', 'Huggingface', 'Select llm deployment engine'], 
+            [None, 'init_chatbot'], ['model_path','/root/share/model_repos/internlm-chat-7b'], ['model_source','local'],
+            ["Generation Parameters"], ['system_message', 'You are a helpful assistant'], 
+            ["Top K", 40, 'At each generation step, the model considers the top K highest-ranking words in the probability distribution of the current word, and then selects one of them as the next word.'],
+            ["Top P", 0.75, 'Top P defines the cumulative probability threshold of the probability mass to be considered when generating the next word. At each step, the model sorts the words in the vocabulary in descending order of probability, and then samples from the range where the cumulative probability reaches Top P'], 
+            ['stop_words', None, 'Generation will be terminated when these words are generated'], ['seed', 0],
+            ["Max output tokens", 512], 
+            ["Temperature", 0.1, 'Controls diversity of model output'], 
+            ["Repetition Penalty", 1.0, 'Reduce duplicate content in generated text'], 
+            ["Basic chat"], ['Chatbot'], ['Textbox'], [None, '🚀 Submit'], [None, '🧹 Clear'], [None,'↩️ Recall last message'],
+            [None, '🔁 Regenerate'], ['warning', '⚠️ Please complete initialization first'], ["File processing"], 
+            ['file save path', None, 'default saved in {time}/output.xlsx'], ['output file'], 
+            ['review your input', 'Please make sure your questions are line separated and saved in a text file'],
+            ['review your output', 'The generated file will be saved as an excel table'], 
+            [None, "Click to Upload a File"], [None, 'Generate'], 
+            ['warning', '⚠️ Please complete initialization first'], 
+            ["LLaVa"], 
+            ["chat_template", "internlm2_chat"], ["model_path", "/root/share/model_repos/internlm2-chat-7b"],
+            ["llava_template", "llava-internlm2-7b"], ["llava_path", "/root/llava/xtuner/llava-internlm2-7b"], 
+            ["encoder_template", "clip-vit-large-patch14-336"], ["encoder_path", "/root/openai/clip-vit-large-patch14-336"],
+            [None, "init_llava"], ["LLaVa Chatbot"], [None, None, None, "Please initialize model!"], 
+            [None, '🚀 Submit'], [None, '↩️ Recall last message'], [None, '🔁 Regenerate'], [None, '🧹 Clear']
+]
 
-def lang_change(lang):
-    if lang == "en":
-        return gr.update(label='language'), \
-            gr.update(label='chat_TEMPLATE'), \
-            gr.update(label='model_path'), \
-            gr.update(label='inference_engine'), \
-            gr.update(label='Chatbot'), \
-            gr.update(label='Textbox'), \
-            gr.update(value='Clear'), \
-            gr.update(value='init_chatbot'), \
-            gr.update(label='bot_name')
-    elif lang == "zh":
-        return gr.update(label='语言'), \
-            gr.update(label='对话模板'), \
-            gr.update(label='模型路径'), \
-            gr.update(label='推理引擎'), \
-            gr.update(label='聊天机器人'), \
-            gr.update(label='对话框'), \
-            gr.update(value='清除记录'), \
-            gr.update(value='初始化模型'), \
-            gr.update(label='模型名称')
-
+zh_list = [
+            ['语言', 'zh', '选择语言'], ['模型模板','internlm_chat'],
+            ['机器人名字','internlm'], ['推理引擎', 'Huggingface', '选择模型部署引擎'], 
+            [None, '初始化模型'], ['模型路径','/root/share/model_repos/internlm-chat-7b'], ['模型来源','本地'],
+            ["生成参数"], ['系统信息', 'You are a helpful assistant'], 
+            ["Top K", 40, '在每一步生成中, 模型会考虑在当前词的概率分布中的前K个最高排名的词, 然后选择其中的一个词作为下一个输出.'],
+            ["Top P", 0.75, 'Top P 定义了在生成下一个词时需要考虑的概率质量函数的累积概率阈值。在每一步中, 模型会以概率的降序顺序对词库中的词进行排序, 随后在累积概率达到Top P的范围内进行采样.'], 
+            ['停止输出词', None, '生成会在这些词被生成出来时停止'], ['随机种子', 0],
+            ["最大输出token数", 512], 
+            ["温度", 0.1, '控制模型输出的强度'], 
+            ["重复惩罚", 1.0, '在生成文本中减少重复内容'], 
+            ["基本聊天"], ['聊天机器人'], ['文本框'], [None, '🚀 提交'], [None, '🧹 清除'], [None,'↩️ 撤回上条消息'],
+            [None, '🔁 重新生成'], ['警告', '⚠️ 请先进行模型初始化'], ["文件处理"], 
+            ['文件保存路径', None, '默认保存在 {time}/output.xlsx'], ['输出文件'], 
+            ['审核你的输入', '请确保你的问题按行分开并且保存在一个文本文件中'],
+            ['审核你的输出', '生成的文件会被保存在一个excel表格中'], 
+            [None, '点击来上传文件'], [None, '生成'], 
+            ['警告', '⚠️ 请先完成模型初始化'], 
+            ["LLaVa"], 
+            ["模型模板", "internlm2_chat"], ["模型路径", "/root/share/model_repos/internlm2-chat-7b"],
+            ["llava模板", "llava-internlm2-7b"], ["llava路径", "/root/llava/xtuner/llava-internlm2-7b"], 
+            ["编码器模板", "clip-vit-large-patch14-336"], ["编码器路径", "/root/openai/clip-vit-large-patch14-336"],
+            [None, "初始化模型"], ["LLaVa 聊天机器人"], [None, None, None, "请初始化模型"], 
+            [None, '🚀 提交'], [None, '↩️ 撤回上条信息'], [None, '🔁 重新生成'], [None, '🧹 清除']
+]
 # outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
 
 
@@ -287,21 +315,21 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
         repetition_penalty = gr.Slider(
             minimum=0.0, maximum=5.0, value=1.0, step=0.1, interactive=True, label="Repetition Penalty", info='Reduce duplicate content in generated text')
 
-    with gr.Tab("Basic chat"):
+    with gr.Tab("Basic chat") as basic_chat:
         with gr.Group(visible=False) as chat_board:
             chatbot = gr.Chatbot(label='Chatbot')
             history = gr.State([])
             msg = gr.Textbox(label='Textbox')
             with gr.Row():
-                ask = gr.Button('🚀 Submmit')
+                ask = gr.Button('🚀 Submit')
                 clear = gr.Button('🧹 Clear')
                 withdraw = gr.Button('↩️ Recall last message')
                 regenerate = gr.Button('🔁 Regenerate')
         chat_warning_info = gr.Textbox(
             '⚠️ Please complete initialization first', label='warning')
 
-    with gr.Tab("File processing"):
-        with gr.Group(visible=False) as porcess_board:
+    with gr.Tab("File processing") as file_tab:
+        with gr.Group(visible=False) as process_board:
             with gr.Row():
                 save_path = gr.Textbox(
                     label='file save path', info='default saved in {time}/output.xlsx')
@@ -318,12 +346,17 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
                     "Click to Upload a File", file_types=["text"])
                 test_but = gr.Button('Generate')
 
-        porcess_warning_info = gr.Textbox(
+        process_warning_info = gr.Textbox(
             '⚠️ Please complete initialization first', label='warning')
 
     with gr.Tab("LLaVa") as llava_tab:
         with gr.Row(equal_height=True):
             with gr.Column(scale=1):
+                llava_model = gr.Dropdown(label="chat_template", choices=[
+                                           "internlm2_chat"], value="internlm2_chat", scale=1, interactive=True)
+                llava_model_path = gr.Textbox(
+                    label="model_path", value="/root/share/model_repos/internlm2-chat-7b", interactive=True)
+
                 llava_select = gr.Dropdown(label="llava_template", choices=[
                                            "llava-internlm2-7b"], value="llava-internlm2-7b", scale=1, interactive=True)
                 llava_path = gr.Textbox(
@@ -336,20 +369,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
                 img_input = gr.Image(interactive=True, type='filepath')
                 llava_model_init_button = gr.Button(
                     "init_llava", interactive=True)
-                '''
-                llava_examples = gr.Examples(
-                    examples=[
-                        [gr.Image(height=32, width=32, value="https://llava.hliu.cc/file=/nobackup/haotian/code/LLaVA_dev/llava/serve/examples/extreme_ironing.jpg"),
-                        "What is unusual about this image?"],
-                        [gr.Image(height=32, width=32, value="https://llava.hliu.cc/file=/nobackup/haotian/code/LLaVA_dev/llava/serve/examples/waterview.jpg"),
-                        "What are the things I should be cautious about when I visit here?"]
-                    ],
-                    inputs=llava_msg,
-                    outputs=[],
-                    fn=[],
-                    cache_examples=True
-                )
-                '''
+
             with gr.Column(scale=3):
                 llava_chatbot = gr.Chatbot(label="LLaVa Chatbot", height=550)
                 llava_history = gr.State([])
@@ -366,11 +386,54 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
                     llava_clear = gr.ClearButton(
                         [llava_chatbot, llava_msg], value='🧹 Clear', interactive=False)
 
-    lang.select(fn=lang_change, inputs=[lang],
-                outputs=[lang, chat_TEMPLATE, model_path, inference_engine, chatbot, msg, clear, init_chatbot, bot_name])
+    components = [lang, chat_TEMPLATE, bot_name, inference_engine, init_chatbot, model_path, model_source,
+                    parameter_row, system, top_k, top_p, stop_words, seed, max_new_tokens, 
+                    temperature, repetition_penalty, basic_chat, chatbot, msg, ask, clear, withdraw,
+                    regenerate, chat_warning_info, file_tab, save_path, file_output, input_file_content,
+                    output_file_content, upload_button, test_but, process_warning_info, llava_tab,
+                    llava_model, llava_model_path, llava_select, llava_path, encoder_select, encoder_path,
+                    llava_model_init_button, llava_chatbot, llava_msg, llava_submit_button, llava_withdraw,
+                    llava_regenerate, llava_clear]
+
+    def lang_change(lang):
+        com_len = len(components)
+        return_list = []
+        if lang == "en":
+            for i in range(com_len):
+                com = components[i]
+                com_list = en_list[i]
+                if isinstance(com, gr.Button) or isinstance(com, gr.UploadButton) or isinstance(com, gr.ClearButton):
+                    return_list += [gr.update(value=com_list[1])]
+                elif len(com_list) == 1:
+                    return_list += [gr.update(label=com_list[0])]
+                elif len(com_list) == 2:
+                    return_list += [gr.update(label=com_list[0], value=com_list[1])]
+                elif len(com_list) == 3:
+                    return_list += [gr.update(label=com_list[0], value=com_list[1], info=com_list[2])]
+                elif len(com_list) == 4:
+                    return_list += [gr.update(label=com_list[0], value=com_list[1], info=com_list[2], placeholder=com_list[3])]
+
+        elif lang == "zh":
+            for i in range(com_len):
+                com = components[i]
+                com_list = zh_list[i]
+                if isinstance(com, gr.Button) or isinstance(com, gr.UploadButton) or isinstance(com, gr.ClearButton):
+                    return_list += [gr.update(value=com_list[1])]
+                elif len(com_list) == 1:
+                    return_list += [gr.update(label=com_list[0])]
+                elif len(com_list) == 2:
+                    return_list += [gr.update(label=com_list[0], value=com_list[1])]
+                elif len(com_list) == 3:
+                    return_list += [gr.update(label=com_list[0], value=com_list[1], info=com_list[2])]
+                elif len(com_list) == 4:
+                    return_list += [gr.update(label=com_list[0], value=com_list[1], info=com_list[2], placeholder=com_list[3])]
+
+        return return_list
+
+    lang.select(fn=lang_change, inputs=lang, outputs=components, queue=False)
 
     init_chatbot.click(fn_init_chatbot, inputs=[
-                       chat_TEMPLATE, inference_engine, model_path], outputs=[chat_warning_info, chat_board, porcess_warning_info, porcess_board])
+                       chat_TEMPLATE, inference_engine, model_path], outputs=[chat_warning_info, chat_board, process_warning_info, process_board])
 
     upload_button.upload(show_upload_file, inputs=[upload_button], outputs=[input_file_content]).then(predict_file, inputs=[upload_button, max_new_tokens, temperature,
                                                                                                                             repetition_penalty, top_k, top_p, stop_words, seed, save_path], outputs=[file_output, output_file_content])
