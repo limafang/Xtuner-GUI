@@ -240,7 +240,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
 
     gr.Markdown(value='''  
 <div align="center">
-  <img src="https://github.com/InternLM/lmdeploy/assets/36994684/0cf8d00f-e86b-40ba-9b54-dc8f1bc6c8d8" width="300"/>
+  <img src="XTuner_GUI.png" width="300"/>
   <br /><br />    
                 
 [![GitHub Repo stars](https://img.shields.io/github/stars/InternLM/xtuner?style=social)](https://github.com/InternLM/xtuner/stargazers)                
