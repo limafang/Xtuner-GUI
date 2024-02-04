@@ -1,1 +1,4 @@
-gradio==4.15.0
+datasets==2.16.1
+gradio==4.16.0
+pandas==2.2.0
+xtuner==0.1.13
