@@ -301,7 +301,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
             '⚠️ Please complete initialization first', label='warning')
 
     with gr.Tab("File processing"):
-        with gr.Group(visible=True) as porcess_board:
+        with gr.Group(visible=False) as porcess_board:
             with gr.Row():
                 save_path = gr.Textbox(
                     label='file save path', info='default saved in {time}/output.xlsx')
