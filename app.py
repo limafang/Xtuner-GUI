@@ -366,7 +366,7 @@ with gr.Blocks(title="XTuner Chat Board") as demo:
                     "init_llava", interactive=True)
 
             with gr.Column(scale=3):
-                llava_chatbot = gr.Chatbot(label="LLaVa Chatbot", height=550)
+                llava_chatbot = gr.Chatbot(label="LLaVa Chatbot", height=720)
                 llava_history = gr.State([])
                 with gr.Row():
                     llava_msg = gr.Textbox(
